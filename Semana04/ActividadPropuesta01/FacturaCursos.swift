@@ -100,3 +100,6 @@ func imprimirFacturaBonita(estudiante: Estudiante, cursos: [Curso]) {
     print(String(format: " 💰 TOTAL FINAL A PAGAR              : S/ %9.2f", res.totalFinal))
     print("==========================================================")
 }
+
+// MARK: - Ejecución Principal
+imprimirFacturaBonita(estudiante: estudianteXiomara, cursos: listaCursosXiomara)
