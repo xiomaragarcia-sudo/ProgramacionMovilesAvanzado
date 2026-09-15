@@ -53,3 +53,44 @@ func capturarEstudiante() -> Estudiante {
                       dni: dni.isEmpty ? "71403373" : dni,
                       esAlumnoTecsup: esTecsup)
 }
+
+// MARK: - Menú Interactivo de Cursos
+func seleccionarCursos() -> [ItemFactura] {
+    var itemsComprados: [ItemFactura] = []
+    var continuar = true
+    
+    while continuar {
+        print("\n==========================================================")
+        print("                 CATÁLOGO DE CURSOS LIBRES               ")
+        print("==========================================================")
+        for (i, c) in catalogoCursos.enumerated() {
+            print(String(format: "%d. %-40@ - S/ %6.2f", i + 1, c.nombre as NSString, c.precioUnitario))
+        }
+        print("\(catalogoCursos.count + 1).  Finalizar selección y generar factura")
+        print("----------------------------------------------------------")
+        print("Seleccione una opción (1-\(catalogoCursos.count + 1)): ", terminator: "")
+        
+        if let entrada = readLine(), let opcion = Int(entrada) {
+            if opcion >= 1 && opcion <= catalogoCursos.count {
+                let cursoSeleccionado = catalogoCursos[opcion - 1]
+                print("Ingrese la cantidad para '\(cursoSeleccionado.nombre)': ", terminator: "")
+                if let cantStr = readLine(), let cant = Int(cantStr), cant > 0 {
+                    itemsComprados.append(ItemFactura(curso: cursoSeleccionado, cantidad: cant))
+                    print(" ¡Curso agregado correctamente!")
+                } else {
+                    print(" Cantidad inválida.")
+                }
+            } else if opcion == catalogoCursos.count + 1 {
+                if itemsComprados.isEmpty {
+                    print(" Debe seleccionar al menos 1 curso antes de facturar.")
+                } else {
+                    continuar = false
+                }
+            } else {
+                print(" Opción no válida.")
+            }
+        }
+    }
+    
+    return itemsComprados
+}
