@@ -154,3 +154,8 @@ func generarEImprimirFactura(estudiante: Estudiante, items: [ItemFactura]) {
     print(String(format: "  TOTAL FINAL A PAGAR              : S/ %9.2f", totalFinal))
     print("==========================================================")
 }
+
+// MARK: - Flujo Principal
+let estudianteRegistrado = capturarEstudiante()
+let cursosSeleccionados = seleccionarCursos()
+generarEImprimirFactura(estudiante: estudianteRegistrado, items: cursosSeleccionados)
