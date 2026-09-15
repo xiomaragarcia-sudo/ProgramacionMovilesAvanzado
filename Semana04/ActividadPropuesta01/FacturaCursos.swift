@@ -62,3 +62,41 @@ func calcularDetallesFactura(estudiante: Estudiante, cursos: [Curso]) -> (
     
     return (totalCursos, subtotal, igv, totalConIGV, descuentoCantidad, descuentoTecsup, totalFinal)
 }
+
+// MARK: - Vista / Impresión de Factura
+func imprimirFacturaBonita(estudiante: Estudiante, cursos: [Curso]) {
+    let res = calcularDetallesFactura(estudiante: estudiante, cursos: cursos)
+    
+    print("==========================================================")
+    print("                 🎓 FACTURA DE MATRÍCULA 🎓                ")
+    print("                     INSTITUCIÓN TECSUP                   ")
+    print("==========================================================")
+    print(" 👤 Estudiante     : \(estudiante.nombre)")
+    print(" 🆔 DNI            : \(estudiante.dni)")
+    print(" 🏫 Alumno Tecsup  : \(estudiante.esAlumnoTecsup ? "Sí [✓]" : "No [X]")")
+    print("----------------------------------------------------------")
+    print(" 📚 DETALLE DE CURSOS MATRICULADOS:")
+    print("----------------------------------------------------------")
+    
+    for c in cursos {
+        let formatoCurso = String(format: "  • %-38@ x%d  S/ %7.2f", c.nombre as NSString, c.cantidad, c.subtotalCurso)
+        print(formatoCurso)
+    }
+    
+    print("----------------------------------------------------------")
+    print(String(format: " 🔹 Subtotal (sin IGV)               : S/ %9.2f", res.subtotal))
+    print(String(format: " 🔹 IGV (18%%)                         : S/ %9.2f", res.igv))
+    print(String(format: " 🔸 Total con IGV                    : S/ %9.2f", res.totalConIGV))
+    print("----------------------------------------------------------")
+    
+    if res.descuentoCantidad > 0 {
+        print(String(format: " 🎉 Desc. 10%% (≥3 cursos)             : -S/%8.2f [✓]", res.descuentoCantidad))
+    }
+    if res.descuentoTecsup > 0 {
+        print(String(format: " 🎁 Desc. Especial Tecsup            : -S/%8.2f [✓]", res.descuentoTecsup))
+    }
+    
+    print("==========================================================")
+    print(String(format: " 💰 TOTAL FINAL A PAGAR              : S/ %9.2f", res.totalFinal))
+    print("==========================================================")
+}
