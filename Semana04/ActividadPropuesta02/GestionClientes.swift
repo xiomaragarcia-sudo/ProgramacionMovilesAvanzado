@@ -128,3 +128,77 @@ func registrarClienteJuridico() -> ClienteJuridico {
         representanteLegal: rep.isEmpty ? "Xiomara Garcia" : rep
     )
 }
+
+// MARK: - Impresión de Lista
+func mostrarListaClientes(lista: [Cliente]) {
+    print("\n==========================================================")
+    print("              📋 FICHA GENERAL DE CLIENTES 📋             ")
+    print("==========================================================")
+    for (index, cliente) in lista.enumerated() {
+        cliente.mostrarDatos()
+        if index < lista.count - 1 {
+            print("----------------------------------------------------------")
+        }
+    }
+    print("==========================================================")
+}
+
+// MARK: - Menú Principal
+func ejecutarSistemaClientes() {
+    // Inicialización obligatoria con los 2 clientes base del caso
+    var listaClientes: [Cliente] = [
+        ClienteNatural(
+            codigo: "C001",
+            direccion: "Av. Lima 123",
+            fechaDeRegistro: "2025-04-03",
+            numeroCuenta: "001-2025-000123",
+            montoMinimoApertura: 500.00,
+            nombreCompleto: "Juan Pérez",
+            dni: "12345678"
+        ),
+        ClienteJuridico(
+            codigo: "C002",
+            direccion: "Jr. Empresas 456",
+            fechaDeRegistro: "2025-04-01",
+            numeroCuenta: "001-2025-000456",
+            montoMinimoApertura: 3000.00,
+            razonSocial: "Soluciones SAC",
+            ruc: "20123456789",
+            representanteLegal: "María León"
+        )
+    ]
+    
+    var ejecutando = true
+    
+    while ejecutando {
+        print("\n==========================================================")
+        print("          🏦 SISTEMA DE GESTIÓN BANCARIA TECSUP 🏦        ")
+        print("==========================================================")
+        print("1. 👤 Registrar Cliente Natural")
+        print("2. 🏢 Registrar Cliente Jurídico")
+        print("3. 📑 Mostrar Todos los Clientes")
+        print("4. 🚪 Salir")
+        print("----------------------------------------------------------")
+        print("Seleccione una opción (1-4): ", terminator: "")
+        
+        if let opcion = readLine()?.trimmingCharacters(in: .whitespacesAndNewlines) {
+            switch opcion {
+            case "1":
+                let nuevo = registrarClienteNatural()
+                listaClientes.append(nuevo)
+                print("✅ Cliente Natural registrado con éxito.")
+            case "2":
+                let nuevo = registrarClienteJuridico()
+                listaClientes.append(nuevo)
+                print("✅ Cliente Jurídico registrado con éxito.")
+            case "3":
+                mostrarListaClientes(lista: listaClientes)
+            case "4":
+                print("👋 ¡Gracias por usar el sistema bancario!")
+                ejecutando = false
+            default:
+                print("⚠️ Opción no válida. Intente nuevamente.")
+            }
+        }
+    }
+}
