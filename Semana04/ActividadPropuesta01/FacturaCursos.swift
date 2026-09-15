@@ -94,3 +94,63 @@ func seleccionarCursos() -> [ItemFactura] {
     
     return itemsComprados
 }
+
+// MARK: - Cálculo e Impresión de Factura
+func generarEImprimirFactura(estudiante: Estudiante, items: [ItemFactura]) {
+    var totalCursos = 0
+    var subtotal = 0.0
+    
+    for item in items {
+        totalCursos += item.cantidad
+        subtotal += item.subtotal
+    }
+    
+    let igv = subtotal * 0.18
+    let totalConIGV = subtotal + igv
+    
+    let aplicaDescuentoCantidad = totalCursos >= 3
+    let descuentoCantidad = aplicaDescuentoCantidad ? (totalConIGV * 0.10) : 0.0
+    
+    let aplicaDescuentoTecsup = estudiante.esAlumnoTecsup && totalCursos >= 3
+    let descuentoTecsup = aplicaDescuentoTecsup ? 400.00 : 0.0
+    
+    let totalFinal = totalConIGV - descuentoCantidad - descuentoTecsup
+    
+    print("\n==========================================================")
+    print("                  FACTURA DE MATRÍCULA                 ")
+    print("                   INSTITUCIÓN TECSUP                   ")
+    print("==========================================================")
+    print("  Estudiante     : \(estudiante.nombre)")
+    print("  DNI            : \(estudiante.dni)")
+    print("  Alumno Tecsup  : \(estudiante.esAlumnoTecsup ? "Sí [✓]" : "No [X]")")
+    print("----------------------------------------------------------")
+    print("  DETALLE DE CURSOS MATRICULADOS:")
+    print("----------------------------------------------------------")
+    
+    for item in items {
+        let fila = String(format: "  • %-36@ x%d  S/ %7.2f", item.curso.nombre as NSString, item.cantidad, item.subtotal)
+        print(fila)
+    }
+    
+    print("----------------------------------------------------------")
+    print(String(format: " 🔹 Subtotal (sin IGV)               : S/ %9.2f", subtotal))
+    print(String(format: " 🔹 IGV (18%%)                         : S/ %9.2f", igv))
+    print(String(format: " 🔸 Total con IGV                    : S/ %9.2f", totalConIGV))
+    print("----------------------------------------------------------")
+    
+    if descuentoCantidad > 0 {
+        print(String(format: " 🎉 Desc. 10%% por cantidad (≥3)       : -S/%8.2f [✓]", descuentoCantidad))
+    } else {
+        print("  Desc. 10%% por cantidad (≥3)       : -S/    0.00 [X]")
+    }
+    
+    if descuentoTecsup > 0 {
+        print(String(format: " 🎁 Desc. Especial Tecsup            : -S/%8.2f [✓]", descuentoTecsup))
+    } else {
+        print("  Desc. Especial Tecsup            : -S/    0.00 [X]")
+    }
+    
+    print("==========================================================")
+    print(String(format: "  TOTAL FINAL A PAGAR              : S/ %9.2f", totalFinal))
+    print("==========================================================")
+}
