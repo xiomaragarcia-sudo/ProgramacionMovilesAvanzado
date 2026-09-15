@@ -32,3 +32,24 @@ let catalogoCursos: [Curso] = [
     Curso(nombre: "Desarrollo de Aplicaciones Web", precioUnitario: 520.00),
     Curso(nombre: "Aplicaciones Móviles Multiplataforma", precioUnitario: 480.00)
 ]
+
+// MARK: - Captura de Datos por Consola
+func capturarEstudiante() -> Estudiante {
+    print("==========================================================")
+    print("              SISTEMA DE MATRÍCULA TECSUP              ")
+    print("==========================================================")
+    
+    print("Ingrese Nombre del Alumno: ", terminator: "")
+    let nombre = readLine() ?? "Xiomara Garcia"
+    
+    print("Ingrese DNI: ", terminator: "")
+    let dni = readLine() ?? "71403373"
+    
+    print("¿Es alumno de Tecsup? (S/N): ", terminator: "")
+    let rpta = readLine()?.uppercased() ?? "S"
+    let esTecsup = (rpta == "S" || rpta == "SI" || rpta == "SÍ")
+    
+    return Estudiante(nombre: nombre.isEmpty ? "Xiomara Garcia" : nombre,
+                      dni: dni.isEmpty ? "71403373" : dni,
+                      esAlumnoTecsup: esTecsup)
+}
