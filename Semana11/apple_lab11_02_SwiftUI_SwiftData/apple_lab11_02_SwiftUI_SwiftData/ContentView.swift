@@ -4,22 +4,31 @@
 //
 //  Created by Tecsup on 4/11/26.
 //
+
 import SwiftUI
-import SwiftData // Para consultar y manipular datos persistentes
+import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext // Contexto: insertar, borrar, guardar
+    @Environment(\.modelContext) private var modelContext
 
-    // READ: consulta automática de todos los alumnos ordenados por apellido
     @Query(sort: \Alumno.apellido) private var alumnos: [Alumno]
 
-    @State private var alumnoSeleccionado: Alumno? // Alumno seleccionado en la lista
-    @State private var mostrarFormulario = false // Muestra el formulario de nuevo alumno
+    @State private var alumnoSeleccionado: Alumno?
+    @State private var mostrarFormulario = false
+    @State private var alumnoAEditar: Alumno?
+    @State private var busqueda = ""
+
+    private var alumnosFiltrados: [Alumno] {
+        if busqueda.isEmpty { return alumnos }
+        return alumnos.filter {
+            $0.apellido.localizedCaseInsensitiveContains(busqueda)
+        }
+    }
 
     var body: some View {
-        NavigationSplitView { // Lista a la izquierda, detalle a la derecha
+        NavigationSplitView {
             List(selection: $alumnoSeleccionado) {
-                ForEach(alumnos) { alumno in
+                ForEach(alumnosFiltrados) { alumno in
                     NavigationLink(value: alumno) {
                         VStack(alignment: .leading) {
                             Text("\(alumno.apellido), \(alumno.nombre)")
@@ -29,8 +38,9 @@ struct ContentView: View {
                         }
                     }
                 }
-                .onDelete(perform: deleteAlumnos) // Eliminar con swipe o modo edición
+                .onDelete(perform: deleteAlumnos)
             }
+            .searchable(text: $busqueda, prompt: "Buscar por apellido")
             .navigationTitle("🎓 Alumnos")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -43,6 +53,13 @@ struct ContentView: View {
                         Label("Nuevo Alumno", systemImage: "plus")
                     }
                 }
+                ToolbarItem {
+                    Button {
+                        asignarCursoDemo()
+                    } label: {
+                        Label("Curso demo", systemImage: "book")
+                    }
+                }
             }
         } detail: {
             if let alumno = alumnoSeleccionado {
@@ -52,23 +69,29 @@ struct ContentView: View {
                     Text("Nombre: \(alumno.nombre)")
                     Text("Apellido: \(alumno.apellido)")
                     Text("DNI: \(alumno.dni)")
+                    Text("Curso: \(alumno.curso?.nombre ?? "Sin curso")")
+                    
+                    Button("Editar") {
+                        alumnoAEditar = alumno
+                    }
                 }
                 .padding()
             } else {
                 Text("Selecciona un alumno")
             }
         }
-        // Formulario de nuevo alumno como hoja flotante
         .sheet(isPresented: $mostrarFormulario) {
             NuevoAlumnoView()
         }
+        .sheet(item: $alumnoAEditar) { alumno in
+            EditarAlumnoView(alumno: alumno)
+        }
     }
 
-    // DELETE: eliminar uno o más alumnos desde la lista
     private func deleteAlumnos(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                let alumno = alumnos[index]
+                let alumno = alumnosFiltrados[index]
                 if alumnoSeleccionado == alumno {
                     alumnoSeleccionado = nil
                 }
@@ -76,9 +99,18 @@ struct ContentView: View {
             }
         }
     }
+
+    // DEMOSTRACIÓN de relación: crea un curso y se lo asigna a todos los alumnos
+    private func asignarCursoDemo() {
+        let curso = Curso(nombre: "Programación en Móviles")
+        modelContext.insert(curso)
+        for alumno in alumnos {
+            alumno.curso = curso
+        }
+    }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: [Alumno.self], inMemory: true)
+        .modelContainer(for: [Alumno.self, Curso.self], inMemory: true)
 }

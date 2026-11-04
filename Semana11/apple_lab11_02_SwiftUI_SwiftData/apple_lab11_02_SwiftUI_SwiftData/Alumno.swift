@@ -14,11 +14,13 @@ class Alumno {
     var apellido: String
     var nombre: String
     var dni: String
+    var curso: Curso? // Relación: un alumno pertenece a un curso (opcional)
     
-    init(idAlumno: UUID = UUID(), apellido: String, nombre: String, dni: String) {
+    init(idAlumno: UUID = UUID(), apellido: String, nombre: String, dni: String, curso: Curso? = nil) {
         self.idAlumno = idAlumno
         self.apellido = apellido
         self.nombre = nombre
         self.dni = dni
+        self.curso = curso
     }
 }
