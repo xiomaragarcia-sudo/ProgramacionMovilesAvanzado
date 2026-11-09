@@ -45,3 +45,50 @@ struct BotonPrincipal: ButtonStyle {
                         in: RoundedRectangle(cornerRadius: 14))
     }
 }
+
+// MARK: - Ayudas de formato
+
+// 13120 -> "S/ 13,120.00"
+func soles(_ valor: Double) -> String {
+    "S/ " + valor.formatted(.number.precision(.fractionLength(2))
+                                .locale(Locale(identifier: "en_US")))
+}
+
+// "Laptop Pro 14" -> "LP"
+func iniciales(de texto: String) -> String {
+    texto.split(separator: " ").prefix(2)
+        .compactMap { $0.first }.map(String.init).joined().uppercased()
+}
+
+// Siempre el mismo color para el mismo nombre
+func colorPara(_ texto: String) -> Color {
+    let paleta: [Color] = [.tema, .blue, .purple, .teal, .red, .orange, .indigo]
+    let suma = texto.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+    return paleta[suma % paleta.count]
+}
+
+// Cuadrito de color con iniciales (filas de productos y proveedores)
+struct IconoIniciales: View {
+    let nombre: String
+    var body: some View {
+        Text(iniciales(de: nombre))
+            .font(.subheadline.bold())
+            .foregroundStyle(.white)
+            .frame(width: 40, height: 40)
+            .background(colorPara(nombre), in: RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+// Pastilla de color: "40 u.", "Al día", "2 por pagar", "VENCIDA"...
+struct Insignia: View {
+    let texto: String
+    let color: Color
+    var body: some View {
+        Text(texto)
+            .font(.caption2.bold())
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(color, in: Capsule())
+    }
+}

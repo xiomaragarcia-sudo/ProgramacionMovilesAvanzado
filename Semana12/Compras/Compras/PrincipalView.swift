@@ -7,17 +7,34 @@
 
 import SwiftUI
 
+// TabView cuyas pestañas dependen del rol (matriz de permisos del expediente)
 struct PrincipalView: View {
-    @Environment(SesionManager.self) private var sesion
     let usuario: Usuario
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text("Hola, \(usuario.nombre)").font(.title2.bold())
-            Text(usuario.rol).foregroundStyle(.secondary)
-            Button("Cerrar sesión", role: .destructive) {
-                sesion.cerrarSesion()
+        TabView {
+            if usuario.esSupervisor {
+                PendienteView(titulo: "Resumen")
+                    .tabItem { Label("Resumen", systemImage: "chart.bar.fill") }
+                PendienteView(titulo: "Aprobar")
+                    .tabItem { Label("Aprobar", systemImage: "checkmark.seal.fill") }
+                PendienteView(titulo: "Por pagar")
+                    .tabItem { Label("Por pagar", systemImage: "creditcard.fill") }
+                PendienteView(titulo: "Productos")
+                    .tabItem { Label("Productos", systemImage: "shippingbox.fill") }
+                PendienteView(titulo: "Proveedores")
+                    .tabItem { Label("Proveedores", systemImage: "building.2.fill") }
+            } else {
+                PendienteView(titulo: "Productos")
+                    .tabItem { Label("Productos", systemImage: "shippingbox.fill") }
+                PendienteView(titulo: "Proveedores")
+                    .tabItem { Label("Proveedores", systemImage: "building.2.fill") }
+                PendienteView(titulo: "Nueva compra")
+                    .tabItem { Label("Compra", systemImage: "cart.fill.badge.plus") }
+                PendienteView(titulo: "Mis compras")
+                    .tabItem { Label("Mis compras", systemImage: "list.bullet.rectangle.fill") }
             }
         }
+        .tint(.tema)
     }
 }
