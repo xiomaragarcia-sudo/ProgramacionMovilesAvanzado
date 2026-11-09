@@ -22,12 +22,12 @@ struct PrincipalView: View {
                     .tabItem { Label("Por pagar", systemImage: "creditcard.fill") }
                 ProductosView()
                     .tabItem { Label("Productos", systemImage: "shippingbox.fill") }
-                PendienteView(titulo: "Proveedores")
+                ProveedoresView()
                     .tabItem { Label("Proveedores", systemImage: "building.2.fill") }
             } else {
                 ProductosView()
                     .tabItem { Label("Productos", systemImage: "shippingbox.fill") }
-                PendienteView(titulo: "Proveedores")
+                ProveedoresView()
                     .tabItem { Label("Proveedores", systemImage: "building.2.fill") }
                 PendienteView(titulo: "Nueva compra")
                     .tabItem { Label("Compra", systemImage: "cart.fill.badge.plus") }
