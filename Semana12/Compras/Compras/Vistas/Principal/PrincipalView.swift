@@ -31,7 +31,7 @@ struct PrincipalView: View {
                     .tabItem { Label("Proveedores", systemImage: "building.2.fill") }
                 NuevaCompraView()
                     .tabItem { Label("Compra", systemImage: "cart.fill.badge.plus") }
-                PendienteView(titulo: "Mis compras")
+                MisComprasView()
                     .tabItem { Label("Mis compras", systemImage: "list.bullet.rectangle.fill") }
             }
         }
