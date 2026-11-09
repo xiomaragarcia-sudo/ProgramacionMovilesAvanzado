@@ -6,14 +6,23 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
+    @Environment(SesionManager.self) private var sesion
+
     var body: some View {
-        Text("Compras")
-            .font(.largeTitle.bold())
+        if let usuario = sesion.usuarioActual {
+            PrincipalView(usuario: usuario)
+        } else {
+            LoginView()
+        }
     }
 }
 
 #Preview {
     ContentView()
+        .environment(SesionManager())
+        .modelContainer(for: [Usuario.self, Proveedor.self, Producto.self, Compra.self],
+                        inMemory: true)
 }
