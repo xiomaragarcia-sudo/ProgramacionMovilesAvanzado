@@ -1,0 +1,26 @@
+//
+//  Alumno.swift
+//  apple_lab11_02_SwiftUI_SwiftData
+//
+//  Created by Tecsup on 4/11/26.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+class Alumno {
+    var idAlumno: UUID
+    var apellido: String
+    var nombre: String
+    var dni: String
+    var curso: Curso? // Relación: un alumno pertenece a un curso (opcional)
+    
+    init(idAlumno: UUID = UUID(), apellido: String, nombre: String, dni: String, curso: Curso? = nil) {
+        self.idAlumno = idAlumno
+        self.apellido = apellido
+        self.nombre = nombre
+        self.dni = dni
+        self.curso = curso
+    }
+}
