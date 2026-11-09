@@ -16,7 +16,7 @@ struct PrincipalView: View {
             if usuario.esSupervisor {
                 PendienteView(titulo: "Resumen")
                     .tabItem { Label("Resumen", systemImage: "chart.bar.fill") }
-                PendienteView(titulo: "Aprobar")
+                AprobarView()
                     .tabItem { Label("Aprobar", systemImage: "checkmark.seal.fill") }
                 PendienteView(titulo: "Por pagar")
                     .tabItem { Label("Por pagar", systemImage: "creditcard.fill") }
