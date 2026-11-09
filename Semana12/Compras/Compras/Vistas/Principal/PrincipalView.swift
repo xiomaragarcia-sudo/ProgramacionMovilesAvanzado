@@ -18,7 +18,7 @@ struct PrincipalView: View {
                     .tabItem { Label("Resumen", systemImage: "chart.bar.fill") }
                 AprobarView()
                     .tabItem { Label("Aprobar", systemImage: "checkmark.seal.fill") }
-                PendienteView(titulo: "Por pagar")
+                PorPagarView()
                     .tabItem { Label("Por pagar", systemImage: "creditcard.fill") }
                 ProductosView()
                     .tabItem { Label("Productos", systemImage: "shippingbox.fill") }
