@@ -1,10 +1,3 @@
-//
-//  ProductosView.swift
-//  Compras
-//
-//  Created by Tecsup on 9/11/26.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -23,80 +16,103 @@ struct ProductosView: View {
     // ② Búsqueda por nombre o categoría
     private var filtrados: [Producto] {
         guard !busqueda.isEmpty else { return productos }
-        return productos.filter {
-            $0.nombre.localizedCaseInsensitiveContains(busqueda)
-            || $0.categoria.localizedCaseInsensitiveContains(busqueda)
+        return productos.filter { (p: Producto) -> Bool in
+            p.nombre.localizedCaseInsensitiveContains(busqueda)
+            || p.categoria.localizedCaseInsensitiveContains(busqueda)
         }
     }
 
     // ④ Valor del inventario = suma de (stock × costo promedio)
     private var valorInventario: Double {
-        productos.reduce(0) { $0 + $1.valorInventario }
+        productos.reduce(0) { (suma: Double, p: Producto) -> Double in
+            suma + p.valorInventario
+        }
+    }
+
+    private var textoPie: String {
+        esSupervisor
+            ? "Toca un producto para ver su Kardex. Desliza para borrar (bloqueado si tiene compras). Mantén presionado para editar."
+            : "Toca un producto para ver su Kardex."
+    }
+
+    // ① Barra superior: botón + (solo supervisor) y avatar
+    @ToolbarContentBuilder
+    private var barraSuperior: some ToolbarContent {
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            if esSupervisor {
+                Button { mostrarNuevo = true } label: { Image(systemName: "plus") }
+            }
+            AvatarMenu()
+        }
     }
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    ForEach(filtrados) { producto in
-                        // ★ Tocar el producto abre su Kardex (B10)
-                        NavigationLink {
-                            KardexView(producto: producto)
-                        } label: {
-                            FilaProducto(producto: producto)
-                        }
-                        .contextMenu {           // mantener presionado = editar (solo supervisor)
-                            if esSupervisor {
-                                Button("Editar", systemImage: "pencil") {
-                                    productoAEditar = producto
-                                }
-                            }
-                        }
+            lista
+                .navigationTitle("Productos")
+                .searchable(text: $busqueda, prompt: "Buscar")
+                .toolbar { barraSuperior }
+                .overlay {
+                    if productos.isEmpty {
+                        ContentUnavailableView("Sin productos", systemImage: "shippingbox",
+                            description: Text(esSupervisor ? "Toca + para agregar el primero."
+                                                           : "El supervisor aún no registró productos."))
                     }
-                    // ⑤ Deslizar para borrar: solo el supervisor (nil = no se puede deslizar)
-                    .onDelete(perform: esSupervisor ? borrar : nil)
                 }
+                .sheet(isPresented: $mostrarNuevo) {
+                    ProductoFormView(producto: nil)
+                }
+                .sheet(item: $productoAEditar) { (producto: Producto) in
+                    ProductoFormView(producto: producto)
+                }
+                .alert("No se puede borrar",
+                       isPresented: Binding(get: { mensajeBorrado != nil },
+                                            set: { if !$0 { mensajeBorrado = nil } })) {
+                    Button("Entendido", role: .cancel) {}
+                } message: {
+                    Text(mensajeBorrado ?? "")
+                }
+        }
+    }
 
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Valor del inventario (stock × costo promedio)")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(soles(valorInventario))
-                            .font(.title2.bold())
-                    }
-                } footer: {
-                    Text(esSupervisor
-                         ? "Toca un producto para ver su Kardex. Desliza para borrar (bloqueado si tiene compras). Mantén presionado para editar."
-                         : "Toca un producto para ver su Kardex.")
+    // Lista de productos + valor del inventario
+    private var lista: some View {
+        List {
+            Section {
+                ForEach(filtrados) { (producto: Producto) in
+                    fila(producto)
                 }
+                .onDelete(perform: borrar)
             }
-            .navigationTitle("Productos")
-            .searchable(text: $busqueda, prompt: "Buscar")
-            .toolbar {
-                if esSupervisor {          // ① Botón + solo para el supervisor
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { mostrarNuevo = true } label: { Image(systemName: "plus") }
-                    }
+
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Valor del inventario (stock × costo promedio)")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text(soles(valorInventario))
+                        .font(.title2.bold())
                 }
-                ToolbarItem(placement: .topBarTrailing) { AvatarMenu() }
-            }
-            .overlay {
-                if productos.isEmpty {
-                    ContentUnavailableView("Sin productos", systemImage: "shippingbox",
-                        description: Text(esSupervisor ? "Toca + para agregar el primero."
-                                                       : "El supervisor aún no registró productos."))
-                }
-            }
-            .sheet(isPresented: $mostrarNuevo) { ProductoFormView(producto: nil) }
-            .sheet(item: $productoAEditar) { ProductoFormView(producto: $0) }
-            .alert("No se puede borrar",
-                   isPresented: Binding(get: { mensajeBorrado != nil },
-                                        set: { if !$0 { mensajeBorrado = nil } })) {
-                Button("Entendido", role: .cancel) {}
-            } message: {
-                Text(mensajeBorrado ?? "")
+            } footer: {
+                Text(textoPie)
             }
         }
+    }
+
+    // Una fila: abre el Kardex; Editar y borrar solo para el supervisor
+    private func fila(_ producto: Producto) -> some View {
+        NavigationLink {
+            KardexView(producto: producto)        // ★ B10
+        } label: {
+            FilaProducto(producto: producto)
+        }
+        .contextMenu {
+            if esSupervisor {
+                Button("Editar", systemImage: "pencil") {
+                    productoAEditar = producto
+                }
+            }
+        }
+        .deleteDisabled(!esSupervisor)   // el comprador no puede deslizar para borrar
     }
 
     // Regla .deny: si tiene compras no se borra y se avisa

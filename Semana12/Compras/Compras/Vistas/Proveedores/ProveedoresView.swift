@@ -1,10 +1,3 @@
-//
-//  ProveedoresView.swift
-//  Compras
-//
-//  Created by Tecsup on 9/11/26.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -23,58 +16,76 @@ struct ProveedoresView: View {
     // Búsqueda por nombre o RUC
     private var filtrados: [Proveedor] {
         guard !busqueda.isEmpty else { return proveedores }
-        return proveedores.filter {
-            $0.nombre.localizedCaseInsensitiveContains(busqueda) || $0.ruc.contains(busqueda)
+        return proveedores.filter { (p: Proveedor) -> Bool in
+            p.nombre.localizedCaseInsensitiveContains(busqueda) || p.ruc.contains(busqueda)
+        }
+    }
+
+    // ① Barra superior: botón + (solo supervisor) y avatar
+    @ToolbarContentBuilder
+    private var barraSuperior: some ToolbarContent {
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            if esSupervisor {
+                Button { mostrarNuevo = true } label: { Image(systemName: "plus") }
+            }
+            AvatarMenu()
         }
     }
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    ForEach(filtrados) { proveedor in
-                        FilaProveedor(proveedor: proveedor)
-                            .contextMenu {           // mantener presionado = editar (solo supervisor)
-                                if esSupervisor {
-                                    Button("Editar", systemImage: "pencil") {
-                                        proveedorAEditar = proveedor
-                                    }
-                                }
-                            }
-                    }
-                    .onDelete(perform: esSupervisor ? borrar : nil)
-                } footer: {
-                    // ③ Valores calculados desde las compras del proveedor
-                    Text("\"Por pagar\" y \"comprado\" se calculan de las compras del proveedor (relación proveedor → compras).")
-                }
-            }
-            .navigationTitle("Proveedores")
-            .searchable(text: $busqueda, prompt: "Buscar por nombre o RUC")
-            .toolbar {
-                if esSupervisor {          // ① Botón + solo para el supervisor
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { mostrarNuevo = true } label: { Image(systemName: "plus") }
+            lista
+                .navigationTitle("Proveedores")
+                .searchable(text: $busqueda, prompt: "Buscar por nombre o RUC")
+                .toolbar { barraSuperior }
+                .overlay {
+                    if proveedores.isEmpty {
+                        ContentUnavailableView("Sin proveedores", systemImage: "building.2",
+                            description: Text(esSupervisor ? "Toca + para agregar el primero."
+                                                           : "El supervisor aún no registró proveedores."))
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) { AvatarMenu() }
-            }
-            .overlay {
-                if proveedores.isEmpty {
-                    ContentUnavailableView("Sin proveedores", systemImage: "building.2",
-                        description: Text(esSupervisor ? "Toca + para agregar el primero."
-                                                       : "El supervisor aún no registró proveedores."))
+                .sheet(isPresented: $mostrarNuevo) {
+                    ProveedorFormView(proveedor: nil)
                 }
-            }
-            .sheet(isPresented: $mostrarNuevo) { ProveedorFormView(proveedor: nil) }
-            .sheet(item: $proveedorAEditar) { ProveedorFormView(proveedor: $0) }
-            .alert("No se puede borrar",
-                   isPresented: Binding(get: { mensajeBorrado != nil },
-                                        set: { if !$0 { mensajeBorrado = nil } })) {
-                Button("Entendido", role: .cancel) {}
-            } message: {
-                Text(mensajeBorrado ?? "")
+                .sheet(item: $proveedorAEditar) { (proveedor: Proveedor) in
+                    ProveedorFormView(proveedor: proveedor)
+                }
+                .alert("No se puede borrar",
+                       isPresented: Binding(get: { mensajeBorrado != nil },
+                                            set: { if !$0 { mensajeBorrado = nil } })) {
+                    Button("Entendido", role: .cancel) {}
+                } message: {
+                    Text(mensajeBorrado ?? "")
+                }
+        }
+    }
+
+    // ② Lista de proveedores
+    private var lista: some View {
+        List {
+            Section {
+                ForEach(filtrados) { (proveedor: Proveedor) in
+                    fila(proveedor)
+                }
+                .onDelete(perform: borrar)
+            } footer: {
+                Text("\"Por pagar\" y \"comprado\" se calculan de las compras del proveedor (relación proveedor → compras).")
             }
         }
+    }
+
+    // Una fila: menú Editar y borrado solo para el supervisor
+    private func fila(_ proveedor: Proveedor) -> some View {
+        FilaProveedor(proveedor: proveedor)
+            .contextMenu {
+                if esSupervisor {
+                    Button("Editar", systemImage: "pencil") {
+                        proveedorAEditar = proveedor
+                    }
+                }
+            }
+            .deleteDisabled(!esSupervisor)   // el comprador no puede deslizar para borrar
     }
 
     // Regla .deny: si tiene compras no se borra
@@ -91,7 +102,7 @@ struct ProveedoresView: View {
     }
 }
 
-// ② Fila con total comprado e insignia "por pagar" o "Al día"
+// Fila con total comprado e insignia "por pagar" o "Al día"
 struct FilaProveedor: View {
     let proveedor: Proveedor
 
@@ -100,7 +111,8 @@ struct FilaProveedor: View {
             IconoIniciales(nombre: proveedor.nombre)
             VStack(alignment: .leading, spacing: 2) {
                 Text(proveedor.nombre).font(.headline).lineLimit(1)
-                Text("RUC …\(proveedor.ruc.suffix(4))").font(.caption).foregroundStyle(.secondary)
+                Text("RUC …" + String(proveedor.ruc.suffix(4)))
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {

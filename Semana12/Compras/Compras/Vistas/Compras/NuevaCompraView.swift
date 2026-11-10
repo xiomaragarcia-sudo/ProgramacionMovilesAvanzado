@@ -3,7 +3,8 @@
 //  Compras
 //
 //  Created by Tecsup on 9/11/26.
-//
+//import SwiftUI
+
 import SwiftUI
 import SwiftData
 
@@ -35,93 +36,22 @@ struct NuevaCompraView: View {
         proveedor != nil && producto != nil && cantidad > 0 && costoUnitario > 0
     }
 
+    private var faltanDatos: Bool { proveedores.isEmpty || productos.isEmpty }
+
     var body: some View {
         NavigationStack {
-            Form {
-                // ② Proveedor · ③ Producto
-                Section {
-                    Picker("Proveedor", selection: $proveedor) {
-                        Text("Selecciona").tag(Proveedor?.none)
-                        ForEach(proveedores) { p in
-                            Text(p.nombre).tag(Optional(p))
-                        }
-                    }
-                    Picker("Producto", selection: $producto) {
-                        Text("Selecciona").tag(Producto?.none)
-                        ForEach(productos) { p in
-                            Text(p.nombre).tag(Optional(p))
-                        }
-                    }
+            Group {
+                if faltanDatos {
+                    // Sin proveedores o productos no se puede comprar
+                    ContentUnavailableView("Faltan datos", systemImage: "cart",
+                        description: Text("El supervisor debe registrar al menos un proveedor y un producto."))
+                } else {
+                    formulario
                 }
-                .pickerStyle(.navigationLink)
-
-                // ④ Cantidad y costo unitario
-                Section {
-                    LabeledContent("Cantidad") {
-                        TextField("0", text: $cantidadTexto)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Costo unitario") {
-                        TextField("0.00", text: $costoTexto)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                }
-
-                // ⑤ Contado o Crédito 30 días
-                Section {
-                    Picker("Forma de pago", selection: $alCredito) {
-                        Text("Contado").tag(false)
-                        Text("Crédito 30 días").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                // Subtotal, IGV y total
-                Section {
-                    LabeledContent("Subtotal", value: soles(subtotal))
-                    LabeledContent("IGV 18%", value: soles(igv))
-                    LabeledContent {
-                        Text(soles(total)).bold()
-                    } label: {
-                        Text("Total").bold()
-                    }
-                }
-
-                // Ⓐ Aviso cuando el total llega a S/ 5,000
-                if requiereAprobacion {
-                    Section {
-                        Label {
-                            Text("Supera S/ 5,000: quedará **pendiente de aprobación** del supervisor. No cambia stock ni costo promedio todavía.")
-                        } icon: {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                        }
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                    }
-                    .listRowBackground(Color.yellow.opacity(0.15))
-                }
-
-                // ⑦ Botón con texto dinámico
-                Section {
-                    Button(requiereAprobacion ? "Enviar a aprobación" : "Registrar compra",
-                           action: registrar)
-                        .buttonStyle(BotonPrincipal())
-                        .disabled(!valido)
-                }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
             }
             .navigationTitle("Nueva compra")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { AvatarMenu() }   // ① Avatar
-            }
-            .overlay {
-                if proveedores.isEmpty || productos.isEmpty {
-                    ContentUnavailableView("Faltan datos", systemImage: "cart",
-                        description: Text("El supervisor debe registrar al menos un proveedor y un producto."))
-                }
             }
             .alert("Compra registrada",
                    isPresented: Binding(get: { mensaje != nil },
@@ -130,6 +60,85 @@ struct NuevaCompraView: View {
             } message: {
                 Text(mensaje ?? "")
             }
+        }
+    }
+
+    private var formulario: some View {
+        Form {
+            // ② Proveedor · ③ Producto
+            Section {
+                Picker("Proveedor", selection: $proveedor) {
+                    Text("Selecciona").tag(Proveedor?.none)
+                    ForEach(proveedores) { (p: Proveedor) in
+                        Text(p.nombre).tag(Optional(p))
+                    }
+                }
+                Picker("Producto", selection: $producto) {
+                    Text("Selecciona").tag(Producto?.none)
+                    ForEach(productos) { (p: Producto) in
+                        Text(p.nombre).tag(Optional(p))
+                    }
+                }
+            }
+            .pickerStyle(.navigationLink)
+
+            // ④ Cantidad y costo unitario
+            Section {
+                LabeledContent("Cantidad") {
+                    TextField("0", text: $cantidadTexto)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                }
+                LabeledContent("Costo unitario") {
+                    TextField("0.00", text: $costoTexto)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+
+            // ⑤ Contado o Crédito 30 días
+            Section {
+                Picker("Forma de pago", selection: $alCredito) {
+                    Text("Contado").tag(false)
+                    Text("Crédito 30 días").tag(true)
+                }
+                .pickerStyle(.segmented)
+            }
+
+            // Subtotal, IGV y total
+            Section {
+                LabeledContent("Subtotal", value: soles(subtotal))
+                LabeledContent("IGV 18%", value: soles(igv))
+                LabeledContent {
+                    Text(soles(total)).bold()
+                } label: {
+                    Text("Total").bold()
+                }
+            }
+
+            // Ⓐ Aviso cuando el total llega a S/ 5,000
+            if requiereAprobacion {
+                Section {
+                    Label {
+                        Text("Supera S/ 5,000: quedará **pendiente de aprobación** del supervisor. No cambia stock ni costo promedio todavía.")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                }
+                .listRowBackground(Color.yellow.opacity(0.15))
+            }
+
+            // ⑦ Botón con texto dinámico
+            Section {
+                Button(requiereAprobacion ? "Enviar a aprobación" : "Registrar compra",
+                       action: registrar)
+                    .buttonStyle(BotonPrincipal())
+                    .disabled(!valido)
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
     }
 
