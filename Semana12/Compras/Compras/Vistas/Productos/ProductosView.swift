@@ -39,14 +39,19 @@ struct ProductosView: View {
             List {
                 Section {
                     ForEach(filtrados) { producto in
-                        FilaProducto(producto: producto)
-                            .contextMenu {           // mantener presionado = editar (solo supervisor)
-                                if esSupervisor {
-                                    Button("Editar", systemImage: "pencil") {
-                                        productoAEditar = producto
-                                    }
+                        // ★ Tocar el producto abre su Kardex (B10)
+                        NavigationLink {
+                            KardexView(producto: producto)
+                        } label: {
+                            FilaProducto(producto: producto)
+                        }
+                        .contextMenu {           // mantener presionado = editar (solo supervisor)
+                            if esSupervisor {
+                                Button("Editar", systemImage: "pencil") {
+                                    productoAEditar = producto
                                 }
                             }
+                        }
                     }
                     // ⑤ Deslizar para borrar: solo el supervisor (nil = no se puede deslizar)
                     .onDelete(perform: esSupervisor ? borrar : nil)
@@ -60,9 +65,9 @@ struct ProductosView: View {
                             .font(.title2.bold())
                     }
                 } footer: {
-                    if esSupervisor {
-                        Text("Desliza para borrar (bloqueado si tiene compras). Mantén presionado para editar.")
-                    }
+                    Text(esSupervisor
+                         ? "Toca un producto para ver su Kardex. Desliza para borrar (bloqueado si tiene compras). Mantén presionado para editar."
+                         : "Toca un producto para ver su Kardex.")
                 }
             }
             .navigationTitle("Productos")
@@ -122,6 +127,9 @@ struct FilaProducto: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(producto.nombre).font(.headline).lineLimit(1)
                 Text(producto.categoria).font(.caption).foregroundStyle(.secondary)
+                if producto.stockBajo {
+                    Text("Stock bajo").font(.caption2.bold()).foregroundStyle(.red)
+                }
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
@@ -131,4 +139,4 @@ struct FilaProducto: View {
             Insignia(texto: "\(producto.stock) u.", color: colorStock)
         }
     }
-}s
+}
