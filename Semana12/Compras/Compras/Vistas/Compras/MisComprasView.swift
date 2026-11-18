@@ -9,8 +9,6 @@ import SwiftData
 
 // B6 · Mis compras (solo Comprador): ve únicamente las compras que él registró
 struct MisComprasView: View {
-    @Environment(SesionManager.self) private var sesion
-
     enum Filtro: String, CaseIterable {
         case todas = "Todas"
         case pendientes = "Pendientes"
@@ -19,9 +17,14 @@ struct MisComprasView: View {
 
     @State private var filtro: Filtro = .todas
 
-    // ④ Solo las suyas: se usan las compras de la relación usuario → compras
-    private var misCompras: [Compra] {
-        (sesion.usuarioActual?.compras ?? []).sorted { $0.fecha > $1.fecha }
+    // ④ R6 · Solo las suyas: @Query con #Predicate sobre el comprador de la sesión
+    @Query private var misCompras: [Compra]
+
+    init(usuario: Usuario) {
+        // El texto se guarda en un let antes de usarlo dentro del #Predicate
+        let usuarioSesion = usuario.usuario
+        _misCompras = Query(filter: #Predicate<Compra> { $0.comprador?.usuario == usuarioSesion },
+                            sort: \Compra.fecha, order: .reverse)
     }
 
     // ① Filtro del segmented
