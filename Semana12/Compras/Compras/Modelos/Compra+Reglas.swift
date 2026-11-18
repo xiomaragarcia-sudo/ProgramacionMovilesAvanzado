@@ -12,12 +12,14 @@ extension Compra {
 
     // R3 · Costo promedio ponderado:
     // nuevo = (stock × costoPromedio + cantidad × costoUnitario) / (stock + cantidad)
+    // Se guarda SIN redondear (115.5555…) y se redondea solo al mostrarlo con soles() -> 115.56.
+    // Si se guardara redondeado, el Kardex recalcularía el costo inicial como 110.01 en vez de 110.00.
     static func costoPromedioPonderado(stock: Int, costoPromedio: Double,
                                        cantidad: Int, costoUnitario: Double) -> Double {
         let unidades = stock + cantidad
         guard unidades > 0 else { return costoUnitario }
         let valor = Double(stock) * costoPromedio + Double(cantidad) * costoUnitario
-        return redondear(valor / Double(unidades))
+        return valor / Double(unidades)
     }
 
     // Vista previa (se usa en B7): cómo quedaría el producto si se aprueba
